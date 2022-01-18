@@ -17,6 +17,7 @@ public class Assignment {
         String display; // DATE, COUNTRY, CONTINENT
         String path = getPath();; // path to CSV file
         String sPath = getPathS(); // path to sample CSV file
+        final var fileUserDir= System.getProperty("user.dir");
 
         System.out.println(sPath);
         System.out.println(path);
