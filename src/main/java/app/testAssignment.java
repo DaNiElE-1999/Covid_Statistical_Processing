@@ -1,11 +1,11 @@
 package app;
 
-import impl.Assignment;
+import impl.ProcessCSVFile;
 
 public class testAssignment {
 
     public static void main(String[] args) throws Exception {
 
-        Assignment.go();
+        ProcessCSVFile.go();
     }
 }

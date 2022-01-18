@@ -5,9 +5,11 @@ import org.jetbrains.annotations.Nullable;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 
-public class Assignment {
+public class ProcessCSVFile {
 
     public static void go() throws Exception {
 
@@ -17,10 +19,12 @@ public class Assignment {
         String display; // DATE, COUNTRY, CONTINENT
         String path = getPath();; // path to CSV file
         String sPath = getPathS(); // path to sample CSV file
-        final var fileUserDir= System.getProperty("user.dir");
+        final var fileUserDir= System.getProperty("user.dir") + sPath;
+        final var csvPath= System.getProperty("user.dir") + path;
 
-        System.out.println(sPath);
-        System.out.println(path);
+        Files.lines(Paths.get(fileUserDir))
+                .skip(0)
+                .forEach(System.out::println);
 
     }
 
