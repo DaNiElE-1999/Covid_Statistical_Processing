@@ -20,7 +20,7 @@ public class Assignment {
 
         System.out.println(sPath);
         System.out.println(path);
-        
+
     }
 
     public static @Nullable String getPathS() {

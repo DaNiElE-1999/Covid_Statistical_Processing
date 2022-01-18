@@ -9,6 +9,8 @@ resources
 
 data -> model : data, getter, setter, hashcode, equals, toString;
 
+assignment class -> retrieved paths
+
 -->
 
 

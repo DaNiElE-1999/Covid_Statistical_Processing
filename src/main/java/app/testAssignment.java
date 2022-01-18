@@ -1,4 +1,6 @@
-package impl;
+package app;
+
+import impl.Assignment;
 
 public class testAssignment {
 
