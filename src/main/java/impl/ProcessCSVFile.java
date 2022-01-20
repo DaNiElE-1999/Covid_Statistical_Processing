@@ -1,5 +1,4 @@
 package impl;
-import model.*;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.FileInputStream;
@@ -7,7 +6,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Properties;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class ProcessCSVFile {
 
@@ -25,6 +25,9 @@ public class ProcessCSVFile {
         Files.lines(Paths.get(fileUserDir))
                 .skip(0)
                 .forEach(System.out::println);
+
+
+        //int x = Integer.parseInt(createID());
 
     }
 
@@ -67,5 +70,12 @@ public class ProcessCSVFile {
         }
 
         return null;
+    }
+
+    private static AtomicLong idCounter = new AtomicLong();
+
+    public static String createID()
+    {
+        return String.valueOf(idCounter.getAndIncrement());
     }
 }
