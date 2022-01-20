@@ -15,8 +15,9 @@ public class LocationData {
     private String iso_code;              //1 (COD) /t1
     private String continent;            //2 (CNT) /t2
     private String location;            //3 (LOC) /t3
-    private double stringency_index;                //14 (SI) /t48
-    private int population;                        //15 (POP) /t49
-    private double median_age;                   //16 (MA) /t51
+    private String stringency_index;                //14 (SI) /t48
+    private String population;                        //15 (POP) /t49
+    private String median_age;                   //16 (MA) /t51
+
 
 }
