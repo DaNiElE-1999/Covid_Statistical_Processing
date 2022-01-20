@@ -15,9 +15,17 @@ public class LocationData {
     private String iso_code;              //1 (COD) /t1
     private String continent;            //2 (CNT) /t2
     private String location;            //3 (LOC) /t3
-    private String stringency_index;                //14 (SI) /t48
-    private String population;                        //15 (POP) /t49
-    private String median_age;                   //16 (MA) /t51
+    private double stringency_index;                //14 (SI) /t48
+    private double population;                        //15 (POP) /t49
+    private double median_age;                   //16 (MA) /t51
 
-
+    public LocationData(int id, String iso_code, String continent, String location, double stringency_index, double population, double median_age) {
+        this.id = id;
+        this.iso_code = iso_code;
+        this.continent = continent;
+        this.location = location;
+        this.stringency_index = stringency_index;
+        this.population = population;
+        this.median_age = median_age;
+    }
 }
