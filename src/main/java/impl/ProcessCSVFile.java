@@ -11,7 +11,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
@@ -27,9 +30,11 @@ public class ProcessCSVFile {
         final var fileUserDir= System.getProperty("user.dir") + sPath;
         final var csvPath= System.getProperty("user.dir") + path;
 
-               List <String> lines = Files.readAllLines(Paths.get(fileUserDir))
+               List<String> lines =
+                       Files.readAllLines(Paths.get(csvPath)) //<- Lexon pathin
                        .stream()
                        .skip(1)
+                       //.forEach(System.out::println);
                        .collect(Collectors.toList()); // from csv file to list
 
         //populate list of LocationData and CovidStatisticsData
@@ -40,13 +45,14 @@ public class ProcessCSVFile {
                             Integer.parseInt(createID()), // id
                             line[3], //date
                             line[0], //iso_code
-                            line[2], //continent
-                            line[1], //country
+                            line[1], //continent
+                            line[2], //country
                             Double.parseDouble(ifNull(line[48])), //stringency_index
                             Double.parseDouble(ifNull(line[50])), //population
                             Double.parseDouble(ifNull(line[47]))); //median_age
-                            locationDataList.add(locationData);
-                    CovidStatisticsData covidStatisticsData = new CovidStatisticsData(
+                            //locationDataList.add(locationData);
+                           // System.out.println(locationData);
+                   CovidStatisticsData covidStatisticsData = new CovidStatisticsData(
                             Integer.parseInt(createID1()), // id
                             Double.parseDouble(ifNull(line[4])), //total_cases
                             Double.parseDouble(ifNull(line[5])), //new_cases
@@ -57,27 +63,198 @@ public class ProcessCSVFile {
                             Double.parseDouble(ifNull(line[16])), //reproduction_rate
                             Double.parseDouble(ifNull(line[25])), //new_tests
                             Double.parseDouble(ifNull(line[26]))); //total_tests
-                    covidStatisticsDataList.add(covidStatisticsData);
+                   // covidStatisticsDataList.add(covidStatisticsData);
                         }
                 );
 
+/*
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Enter the statistics to be computed (min or max): ");
+        String statistics = scanner.nextLine().toLowerCase();
+        System.out.println("Enter the number of records you want to see: (0->100) ");
+        int numberOfRecords = scanner.nextInt();
+        System.out.println("Enter the type of records you want to see (display-> Date, Country, or Continent):");
+        String typeOfRecords = scanner.next().toUpperCase();
+        System.out.println("Enter the field on which the statistics will be computed: NC, NCS, ND, NDS, NT, or NDPC");
+        String by = scanner.next().toUpperCase();
 
+        Menu menu = new Menu(statistics, numberOfRecords, by, typeOfRecords, csvPath);
+        System.out.println(menu);
 
-       // return id of the max value of new cases
-         Collection<Integer> id = covidStatisticsDataList.stream()
-                .sorted(Comparator.comparing(CovidStatisticsData::getNew_cases).reversed())
-                 .map(CovidStatisticsData::getId)
-                 .limit(100)
-                 .collect(Collectors.toList());
+        if (statistics.equals("min")) {
+            Collection<Integer> id;
+            if (by.equals("NC")) {
+                // return id of the min value of new cases
+                id = covidStatisticsDataList.stream()
+                        .sorted(Comparator.comparing(CovidStatisticsData::getNew_cases))
+                        .filter(c -> c.getNew_cases() > 0)
+                        .map(CovidStatisticsData::getId)
+                        .limit(menu.getLimit())
+                        .collect(Collectors.toList());
+            }
+            else if (by.equals("NCS")) {
+                // return id of the min value of new cases smoothed
+                id = covidStatisticsDataList.stream()
+                        .sorted(Comparator.comparing(CovidStatisticsData::getNew_cases_smoothed))
+                        .filter(c -> c.getNew_cases_smoothed() > 0)
+                        .map(CovidStatisticsData::getId)
+                        .limit(menu.getLimit())
+                        .collect(Collectors.toList());
+            }
+            else if (by.equals("ND")) {
+                // return id of the min value of new deaths
+                id = covidStatisticsDataList.stream()
+                        .sorted(Comparator.comparing(CovidStatisticsData::getNew_deaths))
+                        .filter(c -> c.getNew_deaths() > 0)
+                        .map(CovidStatisticsData::getId)
+                        .limit(menu.getLimit())
+                        .collect(Collectors.toList());
+            }
+            else if (by.equals("NDS")) {
+                // return id of the min value of new deaths smoothed
+                id = covidStatisticsDataList.stream()
+                        .sorted(Comparator.comparing(CovidStatisticsData::getNew_deaths_smoothed))
+                        .filter(c -> c.getNew_deaths_smoothed() > 0)
+                        .map(CovidStatisticsData::getId)
+                        .limit(menu.getLimit())
+                        .collect(Collectors.toList());
+            }
+            else if (by.equals("NT")) {
+                // return id of the min value of new tests
+                id = covidStatisticsDataList.stream()
+                        .sorted(Comparator.comparing(CovidStatisticsData::getNew_tests))
+                        .filter(c -> c.getNew_tests() > 0)
+                        .map(CovidStatisticsData::getId)
+                        .limit(menu.getLimit())
+                        .collect(Collectors.toList());
+            }
+            else if (by.equals("NDPC")) {
+                // return id of the min value of new deaths per case
+                id = covidStatisticsDataList.stream()
+                        .sorted(Comparator.comparing(CovidStatisticsData::getNew_deaths_per_case))
+                        .filter(c -> c.getNew_deaths_per_case() > 0)
+                        .map(CovidStatisticsData::getId)
+                        .limit(menu.getLimit())
+                        .collect(Collectors.toList());
+            }
+            else {
+                id = null;
+            }
 
-         //id.stream().forEach(System.out::println);
+            if (typeOfRecords.equals("DATE")) {
+                locationDataList.stream()
+                        .filter(locationData -> id.contains(locationData.getId()))
+                        .map(LocationData::getDate)
+                        .forEach(System.out::println);
+            }
+            else if (typeOfRecords.equals("COUNTRY")) {
+                locationDataList.stream()
+                        .filter(locationData -> id.contains(locationData.getId()))
+                        .map(LocationData::getLocation)
+                        //.map(LocationData::getId)
+                        .forEach(System.out::println);
+            }
+            else if (typeOfRecords.equals("CONTINENT")) {
+                locationDataList.stream()
+                        .filter(locationData -> id.contains(locationData.getId()))
+                        .map(LocationData::getContinent)
+                        .forEach(System.out::println);
+            }
+            else {
+                System.out.println("Invalid input");
+            }
 
-         locationDataList.stream()
-                 .filter(locationData -> id.contains(locationData.getId()))
-                 .map(LocationData::getDate)
-                 .forEach(System.out::println);
+        }
 
-    }
+        else if (statistics.equals("max")) {
+            // return id of the max value of new cases
+            Collection<Integer> id;
+            if (by.equals("NC")) {
+                // return id of the max value of new cases
+                id = covidStatisticsDataList.stream()
+                        .sorted(Comparator.comparing(CovidStatisticsData::getNew_cases).reversed())
+                        .filter(c -> c.getNew_cases() > 0)
+                        .map(CovidStatisticsData::getId)
+                        .limit(menu.getLimit())
+                        .collect(Collectors.toList());
+            }
+            else if (by.equals("NCS")) {
+                // return id of the max value of new cases smoothed
+                id = covidStatisticsDataList.stream()
+                        .sorted(Comparator.comparing(CovidStatisticsData::getNew_cases_smoothed).reversed())
+                        .filter(c -> c.getNew_cases_smoothed() > 0)
+                        .map(CovidStatisticsData::getId)
+                        .limit(menu.getLimit())
+                        .collect(Collectors.toList());
+            }
+            else if (by.equals("ND")) {
+                // return id of the max value of new deaths
+                id = covidStatisticsDataList.stream()
+                        .sorted(Comparator.comparing(CovidStatisticsData::getNew_deaths).reversed())
+                        .filter(c -> c.getNew_deaths() > 0)
+                        .map(CovidStatisticsData::getId)
+                        .limit(menu.getLimit())
+                        .collect(Collectors.toList());
+            }
+            else if (by.equals("NDS")) {
+                // return id of the max value of new deaths smoothed
+                id = covidStatisticsDataList.stream()
+                        .sorted(Comparator.comparing(CovidStatisticsData::getNew_deaths_smoothed).reversed())
+                        .filter(c -> c.getNew_deaths_smoothed() > 0)
+                        .map(CovidStatisticsData::getId)
+                        .limit(menu.getLimit())
+                        .collect(Collectors.toList());
+            }
+            else if (by.equals("NT")) {
+                // return id of the max value of new tests
+                id = covidStatisticsDataList.stream()
+                        .sorted(Comparator.comparing(CovidStatisticsData::getNew_tests).reversed())
+                        .filter(c -> c.getNew_tests() > 0)
+                        .map(CovidStatisticsData::getId)
+                        .limit(menu.getLimit())
+                        .collect(Collectors.toList());
+            }
+            else if (by.equals("NDPC")) {
+                // return id of the max value of new deaths per case
+                id = covidStatisticsDataList.stream()
+                        .sorted(Comparator.comparing(CovidStatisticsData::getNew_deaths_per_case).reversed())
+                        .filter(c -> c.getNew_deaths_per_case() > 0)
+                        .map(CovidStatisticsData::getId)
+                        .limit(menu.getLimit())
+                        .collect(Collectors.toList());
+            }
+            else {
+                id = null;
+            }
+
+            if (typeOfRecords.equals("DATE")) {
+                locationDataList.stream()
+                        .filter(locationData -> id.contains(locationData.getId()))
+                        .map(LocationData::getDate)
+                        .forEach(System.out::println);
+            }
+            else if (typeOfRecords.equals("COUNTRY")) {
+                locationDataList.stream()
+                        .filter(locationData -> id.contains(locationData.getId()))
+                        .map(LocationData::getLocation)
+                        .forEach(System.out::println);
+            }
+            else if (typeOfRecords.equals("CONTINENT")) {
+                locationDataList.stream()
+                        .filter(locationData -> id.contains(locationData.getId()))
+                        .map(LocationData::getContinent)
+                        .forEach(System.out::println);
+            }
+            else {
+                System.out.println("Invalid input");
+            }
+        }
+        else {
+            System.out.println("Invalid input");
+        }
+*/
+
+    }//go
 
     @Contract(pure = true)
     private static @NotNull String ifNull(@NotNull String s) {
@@ -86,6 +263,15 @@ public class ProcessCSVFile {
         }
         return s;
     }
+
+    private static Double ifNegative(@NotNull Double d) {
+        if(d < 0) {
+            return 999999999999999999.0;
+        }
+        return d;
+    }
+
+
 
     public static @Nullable String getPathS() {
 
@@ -140,29 +326,4 @@ public class ProcessCSVFile {
         return String.valueOf(idCounter1.getAndIncrement());
     }
 
-    public static <T> @NotNull ArrayList menu() throws InputMismatchException{
-
-        Scanner myObj = new Scanner(System.in);
-        ArrayList<T> menu = new ArrayList<>();
-        String status; //max or min
-        Integer limit; // 1 - 100
-        String by; // NC, NCS, ND, NDS, NT, NDPC
-        String display; // DATE, COUNTRY, CONTINENT
-
-        System.out.println("stat");// -stat --> max or min
-        status = myObj.nextLine();
-        System.out.println("limit");// -limit --> 0 < X < 100
-        limit = myObj.nextInt();
-        System.out.println("by");// -by --> max(by) or min(by)  NC, NCS, ND, NDS, NT, NDPC
-        by = myObj.nextLine();
-        System.out.println("display");// -display --> DATE, COUNTRY, CONTINENT
-        display = myObj.nextLine();
-
-        //limit = l;
-        menu.add((T) status);
-        menu.add((T) limit);
-        menu.add((T) by);
-        menu.add((T) display);
-        return menu;
-    }
 }
