@@ -11,10 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
@@ -67,7 +64,7 @@ public class ProcessCSVFile {
                         }
                 );
 
-/*
+
         Scanner scanner = new Scanner(System.in);
         System.out.println("Enter the statistics to be computed (min or max): ");
         String statistics = scanner.nextLine().toLowerCase();
@@ -252,7 +249,7 @@ public class ProcessCSVFile {
         else {
             System.out.println("Invalid input");
         }
-*/
+
 
     }//go
 
