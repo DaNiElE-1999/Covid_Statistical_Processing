@@ -2,6 +2,7 @@ package impl;
 
 import model.CovidStatisticsData;
 import model.LocationData;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -10,24 +11,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 public class ProcessCSVFile {
 
-    public static void go() throws Exception {
+    public static <T> void go() throws Exception {
 
         Collection<LocationData> locationDataList = new ArrayList<>();
         Collection<CovidStatisticsData> covidStatisticsDataList = new ArrayList<>();
         //
-        boolean status; //max or min
-        int limit; // 1 - 100
-        String by; // NC, NCS, ND, NDS, NT, NDPC
-        String display; // DATE, COUNTRY, CONTINENT
         String path = getPath();; // path to CSV file
         String sPath = getPathS(); // path to sample CSV file
         final var fileUserDir= System.getProperty("user.dir") + sPath;
@@ -67,12 +61,13 @@ public class ProcessCSVFile {
 
 
 
-        locationDataList.stream().forEach(System.out::println);
-        covidStatisticsDataList.stream().forEach(System.out::println);
+        //locationDataList.stream().forEach(System.out::println);
+        //covidStatisticsDataList.stream().forEach(System.out::println);
 
     }
 
-    private static String ifNull(String s) {
+    @Contract(pure = true)
+    private static @NotNull String ifNull(@NotNull String s) {
         if(s.equals("")) {
             return "0";
         }
@@ -130,5 +125,31 @@ public class ProcessCSVFile {
     public static @NotNull String createID1()
     {
         return String.valueOf(idCounter1.getAndIncrement());
+    }
+
+    public static <T> @NotNull ArrayList menu() throws InputMismatchException{
+
+        Scanner myObj = new Scanner(System.in);
+        ArrayList<T> menu = new ArrayList<>();
+        String status; //max or min
+        Integer limit; // 1 - 100
+        String by; // NC, NCS, ND, NDS, NT, NDPC
+        String display; // DATE, COUNTRY, CONTINENT
+
+        System.out.println("stat");// -stat --> max or min
+        status = myObj.nextLine();
+        System.out.println("limit");// -limit --> 0 < X < 100
+        limit = myObj.nextInt();
+        System.out.println("by");// -by --> max(by) or min(by)  NC, NCS, ND, NDS, NT, NDPC
+        by = myObj.nextLine();
+        System.out.println("display");// -display --> DATE, COUNTRY, CONTINENT
+        display = myObj.nextLine();
+
+        //limit = l;
+        menu.add((T) status);
+        menu.add((T) limit);
+        menu.add((T) by);
+        menu.add((T) display);
+        return menu;
     }
 }
