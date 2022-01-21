@@ -30,46 +30,59 @@ public class ProcessCSVFile {
                List <String> lines = Files.readAllLines(Paths.get(fileUserDir))
                        .stream()
                        .skip(1)
-                       .collect(Collectors.toList());
+                       .collect(Collectors.toList()); // from csv file to list
 
+        //populate list of LocationData and CovidStatisticsData
         lines.stream()
                 .map(line -> line.split(","))
                 .forEach(line -> {
                     LocationData locationData = new LocationData(
-                            Integer.parseInt(createID()),
-                            line[0],
-                            line[2],
-                            line[1],
-                            Double.parseDouble(ifNull(line[48])),
-                            Double.parseDouble(ifNull(line[50])),
-                            Double.parseDouble(ifNull(line[47])));
+                            Integer.parseInt(createID()), // id
+                            line[3], //date
+                            line[0], //iso_code
+                            line[2], //continent
+                            line[1], //country
+                            Double.parseDouble(ifNull(line[48])), //stringency_index
+                            Double.parseDouble(ifNull(line[50])), //population
+                            Double.parseDouble(ifNull(line[47]))); //median_age
                             locationDataList.add(locationData);
-                    CovidStatisticsData covidStatisticsData = new CovidStatisticsData(Integer.parseInt(createID1()),
-                            line[3],
-                            Double.parseDouble(ifNull(line[4])),
-                            Double.parseDouble(ifNull(line[5])),
-                            Double.parseDouble(ifNull(line[6])),
-                            Double.parseDouble(ifNull(line[7])),
-                            Double.parseDouble(ifNull(line[8])),
-                            Double.parseDouble(ifNull(line[9])),
-                            Double.parseDouble(ifNull(line[16])),
-                            Double.parseDouble(ifNull(line[25])),
-                            Double.parseDouble(ifNull(line[26])));
+                    CovidStatisticsData covidStatisticsData = new CovidStatisticsData(
+                            Integer.parseInt(createID1()), // id
+                            Double.parseDouble(ifNull(line[4])), //total_cases
+                            Double.parseDouble(ifNull(line[5])), //new_cases
+                            Double.parseDouble(ifNull(line[6])), //new_cases_smoothed
+                            Double.parseDouble(ifNull(line[7])), //total_deaths
+                            Double.parseDouble(ifNull(line[8])), //new_deaths
+                            Double.parseDouble(ifNull(line[9])), //new_deaths_smoothed
+                            Double.parseDouble(ifNull(line[16])), //reproduction_rate
+                            Double.parseDouble(ifNull(line[25])), //new_tests
+                            Double.parseDouble(ifNull(line[26]))); //total_tests
                     covidStatisticsDataList.add(covidStatisticsData);
                         }
                 );
 
 
 
-        //locationDataList.stream().forEach(System.out::println);
-        //covidStatisticsDataList.stream().forEach(System.out::println);
+       // return id of the max value of new cases
+         Collection<Integer> id = covidStatisticsDataList.stream()
+                .sorted(Comparator.comparing(CovidStatisticsData::getNew_cases).reversed())
+                 .map(CovidStatisticsData::getId)
+                 .limit(100)
+                 .collect(Collectors.toList());
+
+         //id.stream().forEach(System.out::println);
+
+         locationDataList.stream()
+                 .filter(locationData -> id.contains(locationData.getId()))
+                 .map(LocationData::getDate)
+                 .forEach(System.out::println);
 
     }
 
     @Contract(pure = true)
     private static @NotNull String ifNull(@NotNull String s) {
         if(s.equals("")) {
-            return "0";
+            return "-1";
         }
         return s;
     }

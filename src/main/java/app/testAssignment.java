@@ -13,6 +13,7 @@ public class testAssignment {
     public static void test() throws Exception {
         boolean test = true;
 
+        ProcessCSVFile.go(); // no need for asking here
         while (test) {
             System.out.println("Want to proceed? (Type y if so)");
             Scanner in = new Scanner(System.in);
