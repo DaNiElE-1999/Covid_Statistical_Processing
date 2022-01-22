@@ -14,6 +14,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ProcessCSVFile {
 
@@ -22,48 +23,55 @@ public class ProcessCSVFile {
         Collection<LocationData> locationDataList = new ArrayList<>();
         Collection<CovidStatisticsData> covidStatisticsDataList = new ArrayList<>();
         //
-        String path = getPath();; // path to CSV file
+        String path = getPath(); // path to CSV file
         String sPath = getPathS(); // path to sample CSV file
         final var fileUserDir= System.getProperty("user.dir") + sPath;
         final var csvPath= System.getProperty("user.dir") + path;
 
+        //minAndMax(csvPath);
+
                List<String> lines =
-                       Files.readAllLines(Paths.get(csvPath)) //<- Lexon pathin
+                       Files.readAllLines(Paths.get(csvPath)) //<- gets the path to the CSV file
                        .stream()
                        .skip(1)
                        //.forEach(System.out::println);
                        .collect(Collectors.toList()); // from csv file to list
 
         //populate list of LocationData and CovidStatisticsData
+
         lines.stream()
-                .map(line -> line.split(","))
+                .map(line -> {
+                   return line.split(",", -1);
+                })
                 .forEach(line -> {
-                    LocationData locationData = new LocationData(
-                            Integer.parseInt(createID()), // id
-                            line[3], //date
-                            line[0], //iso_code
-                            line[1], //continent
-                            line[2], //country
-                            Double.parseDouble(ifNull(line[48])), //stringency_index
-                            Double.parseDouble(ifNull(line[50])), //population
-                            Double.parseDouble(ifNull(line[47]))); //median_age
-                            //locationDataList.add(locationData);
-                           // System.out.println(locationData);
-                   CovidStatisticsData covidStatisticsData = new CovidStatisticsData(
-                            Integer.parseInt(createID1()), // id
-                            Double.parseDouble(ifNull(line[4])), //total_cases
-                            Double.parseDouble(ifNull(line[5])), //new_cases
-                            Double.parseDouble(ifNull(line[6])), //new_cases_smoothed
-                            Double.parseDouble(ifNull(line[7])), //total_deaths
-                            Double.parseDouble(ifNull(line[8])), //new_deaths
-                            Double.parseDouble(ifNull(line[9])), //new_deaths_smoothed
-                            Double.parseDouble(ifNull(line[16])), //reproduction_rate
-                            Double.parseDouble(ifNull(line[25])), //new_tests
-                            Double.parseDouble(ifNull(line[26]))); //total_tests
-                   // covidStatisticsDataList.add(covidStatisticsData);
+                    if (line.length!=67) {
+                       System.out.println("Error in line: " + line.length);
+                    }
+                            LocationData locationData = new LocationData(
+                                    Integer.parseInt(createID()), // id
+                                    line[3], //date
+                                    line[0], //iso_code
+                                    line[1], //continent
+                                    line[2], //country
+                                    Double.parseDouble(ifNull(line[48])), //stringency_index
+                                    Double.parseDouble(ifNull(line[50])), //population
+                                    Double.parseDouble(ifNull(line[47]))); //median_age
+                            locationDataList.add(locationData);
+                            //System.out.println(locationData);
+                            CovidStatisticsData covidStatisticsData = new CovidStatisticsData(
+                                    Integer.parseInt(createID1()), // id
+                                    Double.parseDouble(ifNull(line[4])), //total_cases
+                                    Double.parseDouble(ifNull(line[5])), //new_cases
+                                    Double.parseDouble(ifNull(line[6])), //new_cases_smoothed
+                                    Double.parseDouble(ifNull(line[7])), //total_deaths
+                                    Double.parseDouble(ifNull(line[8])), //new_deaths
+                                    Double.parseDouble(ifNull(line[9])), //new_deaths_smoothed
+                                    Double.parseDouble(ifNull(line[16])), //reproduction_rate
+                                    Double.parseDouble(ifNull(line[25])), //new_tests
+                                    Double.parseDouble(ifNull(line[26]))); //total_tests
+                             covidStatisticsDataList.add(covidStatisticsData);
                         }
                 );
-
 
         Scanner scanner = new Scanner(System.in);
         System.out.println("Enter the statistics to be computed (min or max): ");
@@ -261,6 +269,7 @@ public class ProcessCSVFile {
         return s;
     }
 
+
     private static Double ifNegative(@NotNull Double d) {
         if(d < 0) {
             return 999999999999999999.0;
@@ -321,6 +330,23 @@ public class ProcessCSVFile {
     public static @NotNull String createID1()
     {
         return String.valueOf(idCounter1.getAndIncrement());
+    }
+
+    private static void minAndMax(String path) {
+        try (Stream<String> stream = Files.lines(Paths.get(path))) {
+            DoubleSummaryStatistics statistics = stream
+                    .map(s -> s.split(",")[8])
+                    .skip(1)
+                    //remove null values
+                    .filter(s -> !s.equals(""))
+                    .mapToDouble(Double::parseDouble)
+                    //.mapToDouble(Integer::valueOf)
+                    .summaryStatistics();
+            System.out.println("Lowest:: " + statistics.getMin());
+            System.out.println("Highest:: " + statistics.getMax());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 }

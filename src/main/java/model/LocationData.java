@@ -9,6 +9,7 @@ import lombok.ToString;
 @Setter
 @EqualsAndHashCode
 @ToString
+
 public class LocationData {
 
     private int id;
@@ -20,6 +21,9 @@ public class LocationData {
     private double population;                     //15 (POP) /t49
     private double median_age;                   //16 (MA) /t51
 
+    public  LocationData(){
+
+    }
     public LocationData(int id, String Date, String iso_code, String continent, String location, double stringency_index, double population, double median_age) {
         this.id = id;
         this.iso_code = iso_code;
