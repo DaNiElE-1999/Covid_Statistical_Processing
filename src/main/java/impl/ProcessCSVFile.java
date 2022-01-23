@@ -110,11 +110,18 @@ public class ProcessCSVFile {
         Collection<LocationData> locationDataList = new ArrayList<>();
         Collection<CovidStatisticsData> covidStatisticsDataList = new ArrayList<>();
         //
-               List<String> lines =
-                       Files.readAllLines(Paths.get(csvPath)) //<- gets the path to the CSV file
-                       .stream()
-                       .skip(1)
-                       .collect(Collectors.toList()); // from csv file to list
+        List<String> lines = null;
+        try {
+            lines =
+                    Files.readAllLines(Paths.get(csvPath)) //<- gets the path to the CSV file
+                            .stream()
+                            .skip(1)
+                            .collect(Collectors.toList()); // from csv file to list
+
+        }
+        catch (IOException e) {
+            System.out.println("File not found!");
+        }
 
         //populate list of LocationData and CovidStatisticsData
         lines.stream()
