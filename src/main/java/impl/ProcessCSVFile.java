@@ -23,7 +23,8 @@ public class ProcessCSVFile {
     public static void go() throws Exception {
 
         System.out.println("Please enter the command line parameters\n");
-        System.out.println("Path must be relative to the Assignment Folder\n");
+        System.out.println("Path must be relative to the Source Code Folder\n");
+        System.out.println("For example -file /src/main/resources/owid-covid-data.csv -stat min -limit 5 -by NCs -display COUNTRY: \n");
         Scanner sc = new Scanner(System.in);
 
         String s = sc.nextLine();
