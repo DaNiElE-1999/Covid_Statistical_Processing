@@ -4,7 +4,6 @@ import model.CovidStatisticsData;
 import model.LocationData;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -14,35 +13,112 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class ProcessCSVFile {
 
+
+    private static AtomicLong idCounter = new AtomicLong();
+    private static AtomicLong idCounter1 = new AtomicLong();
+
     public static <T> void go() throws Exception {
+
+        System.out.println("Please enter the command line parameters\n");
+        System.out.println("Path must be relative to the Assignment Folder\n");
+        Scanner sc = new Scanner(System.in);
+
+        String s = sc.nextLine();
+        String[] paramCheck =
+                Arrays.stream(s.split(" -"))
+                        .map(String::trim)
+                        .toArray(String[]::new);
+        if (paramCheck.length != 5) {
+            System.out.println("Wrong number of parameters!");
+        }
+
+        String[] input =
+                Arrays.stream(s.split(" "))
+                        .map(String::trim)
+                        .toArray(String[]::new);
+        if (input.length != 10) {
+            System.out.println("Wrong format!");
+        }
+
+        String[] parameters =
+                Arrays.stream(s.split(" "))
+                        //.skip(s.indexOf(1))
+                        .filter(x -> x.startsWith("-"))
+                        .map(String::trim)
+                        .toArray(String[]::new);
+
+        List<String> list = new ArrayList<String>(Arrays.asList(parameters));
+        if (parameters.length != 5)  {
+            System.out.println("Wrong number of parameters or incorrect input!");
+        }
+
+        HashMap<String, String> map = new HashMap<>();
+        map.put(list.get(0), input[1]);
+        map.put(list.get(1), input[3]);
+        map.put(list.get(2), input[5]);
+        map.put(list.get(3), input[7]);
+        map.put(list.get(4), input[9]);
+
+
+        Menu menu = new Menu();
+        map.forEach((k, v) ->
+        {
+            if (k.equals("-file")) {
+                menu.setPath(v);
+            }
+            if (k.equals("-stat")) {
+                menu.setStatus(v);
+            }
+            if (k.contains("-limit")) {
+                try {
+
+                    menu.setLimit(Integer.parseInt(v) );
+                }
+                catch (NumberFormatException e) {
+                    System.out.println("Limit must be an integer!");
+                    try {
+                        //test();
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                }
+                if(Integer.parseInt(v) > 100 || Integer.parseInt(v) <0) {
+                    System.out.println("Limit must be between 0 and 100!");
+                    try {
+                        //test();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            if (k.equals("-by")) {
+                menu.setBy(v);
+            }
+            if (k.equals("-display")) {
+                menu.setDisplay(v);
+            }
+        });
+
+
+        System.out.println("\n");
+        //String dirPath = getPath();
+        final var csvPath= System.getProperty("user.dir") + menu.getPath();
 
         Collection<LocationData> locationDataList = new ArrayList<>();
         Collection<CovidStatisticsData> covidStatisticsDataList = new ArrayList<>();
         //
-        String path = getPath(); // path to CSV file
-        String sPath = getPathS(); // path to sample CSV file
-        final var fileUserDir= System.getProperty("user.dir") + sPath;
-        final var csvPath= System.getProperty("user.dir") + path;
-
-        //minAndMax(csvPath);
-
                List<String> lines =
                        Files.readAllLines(Paths.get(csvPath)) //<- gets the path to the CSV file
                        .stream()
                        .skip(1)
-                       //.forEach(System.out::println);
                        .collect(Collectors.toList()); // from csv file to list
 
         //populate list of LocationData and CovidStatisticsData
-
         lines.stream()
-                .map(line -> {
-                   return line.split(",", -1);
-                })
+                .map(line -> line.split(",", -1))
                 .forEach(line -> {
                     if (line.length!=67) {
                        System.out.println("Error in line: " + line.length);
@@ -57,7 +133,6 @@ public class ProcessCSVFile {
                                     Double.parseDouble(ifNull(line[50])), //population
                                     Double.parseDouble(ifNull(line[47]))); //median_age
                             locationDataList.add(locationData);
-                            //System.out.println(locationData);
                             CovidStatisticsData covidStatisticsData = new CovidStatisticsData(
                                     Integer.parseInt(createID1()), // id
                                     Double.parseDouble(ifNull(line[4])), //total_cases
@@ -73,22 +148,9 @@ public class ProcessCSVFile {
                         }
                 );
 
-        Scanner scanner = new Scanner(System.in);
-        System.out.println("Enter the statistics to be computed (min or max): ");
-        String statistics = scanner.nextLine().toLowerCase();
-        System.out.println("Enter the number of records you want to see: (0->100) ");
-        int numberOfRecords = scanner.nextInt();
-        System.out.println("Enter the type of records you want to see (display-> Date, Country, or Continent):");
-        String typeOfRecords = scanner.next().toUpperCase();
-        System.out.println("Enter the field on which the statistics will be computed: NC, NCS, ND, NDS, NT, or NDPC");
-        String by = scanner.next().toUpperCase();
-
-        Menu menu = new Menu(statistics, numberOfRecords, by, typeOfRecords, csvPath);
-        System.out.println(menu);
-
-        if (statistics.equals("min")) {
+        if (menu.getStatus().toLowerCase().equals("min")) {
             Collection<Integer> id;
-            if (by.equals("NC")) {
+            if (menu.getBy().toUpperCase().equals("NC")) {
                 // return id of the min value of new cases
                 id = covidStatisticsDataList.stream()
                         .sorted(Comparator.comparing(CovidStatisticsData::getNew_cases))
@@ -97,7 +159,7 @@ public class ProcessCSVFile {
                         .limit(menu.getLimit())
                         .collect(Collectors.toList());
             }
-            else if (by.equals("NCS")) {
+            else if (menu.getBy().toUpperCase().equals("NCS")) {
                 // return id of the min value of new cases smoothed
                 id = covidStatisticsDataList.stream()
                         .sorted(Comparator.comparing(CovidStatisticsData::getNew_cases_smoothed))
@@ -106,7 +168,7 @@ public class ProcessCSVFile {
                         .limit(menu.getLimit())
                         .collect(Collectors.toList());
             }
-            else if (by.equals("ND")) {
+            else if (menu.getBy().toUpperCase().equals("ND")) {
                 // return id of the min value of new deaths
                 id = covidStatisticsDataList.stream()
                         .sorted(Comparator.comparing(CovidStatisticsData::getNew_deaths))
@@ -115,7 +177,7 @@ public class ProcessCSVFile {
                         .limit(menu.getLimit())
                         .collect(Collectors.toList());
             }
-            else if (by.equals("NDS")) {
+            else if (menu.getBy().toUpperCase().equals("NDS")) {
                 // return id of the min value of new deaths smoothed
                 id = covidStatisticsDataList.stream()
                         .sorted(Comparator.comparing(CovidStatisticsData::getNew_deaths_smoothed))
@@ -124,7 +186,7 @@ public class ProcessCSVFile {
                         .limit(menu.getLimit())
                         .collect(Collectors.toList());
             }
-            else if (by.equals("NT")) {
+            else if (menu.getBy().toUpperCase().equals("NT")) {
                 // return id of the min value of new tests
                 id = covidStatisticsDataList.stream()
                         .sorted(Comparator.comparing(CovidStatisticsData::getNew_tests))
@@ -133,7 +195,7 @@ public class ProcessCSVFile {
                         .limit(menu.getLimit())
                         .collect(Collectors.toList());
             }
-            else if (by.equals("NDPC")) {
+            else if (menu.getBy().toUpperCase().equals("NDPC")) {
                 // return id of the min value of new deaths per case
                 id = covidStatisticsDataList.stream()
                         .sorted(Comparator.comparing(CovidStatisticsData::getNew_deaths_per_case))
@@ -143,25 +205,35 @@ public class ProcessCSVFile {
                         .collect(Collectors.toList());
             }
             else {
+                System.out.println("Invalid input");
                 id = null;
             }
 
-            if (typeOfRecords.equals("DATE")) {
+            if (menu.getDisplay().toUpperCase().equals("DATE:")) {
                 locationDataList.stream()
-                        .filter(locationData -> id.contains(locationData.getId()))
+                        .filter(locationData -> {
+                            assert id != null;
+                            return id.contains(locationData.getId());
+                        })
                         .map(LocationData::getDate)
                         .forEach(System.out::println);
             }
-            else if (typeOfRecords.equals("COUNTRY")) {
+            else if (menu.getDisplay().toUpperCase().equals("COUNTRY:")) {
                 locationDataList.stream()
-                        .filter(locationData -> id.contains(locationData.getId()))
+                        .filter(locationData -> {
+                            assert id != null;
+                            return id.contains(locationData.getId());
+                        })
                         .map(LocationData::getLocation)
                         //.map(LocationData::getId)
                         .forEach(System.out::println);
             }
-            else if (typeOfRecords.equals("CONTINENT")) {
+            else if (menu.getDisplay().toUpperCase().equals("CONTINENT:")) {
                 locationDataList.stream()
-                        .filter(locationData -> id.contains(locationData.getId()))
+                        .filter(locationData -> {
+                            assert id != null;
+                            return id.contains(locationData.getId());
+                        })
                         .map(LocationData::getContinent)
                         .forEach(System.out::println);
             }
@@ -171,10 +243,10 @@ public class ProcessCSVFile {
 
         }
 
-        else if (statistics.equals("max")) {
+        else if (menu.getStatus().toLowerCase().equals("max")) {
             // return id of the max value of new cases
             Collection<Integer> id;
-            if (by.equals("NC")) {
+            if (menu.getBy().toUpperCase().equals("NC")) {
                 // return id of the max value of new cases
                 id = covidStatisticsDataList.stream()
                         .sorted(Comparator.comparing(CovidStatisticsData::getNew_cases).reversed())
@@ -183,7 +255,7 @@ public class ProcessCSVFile {
                         .limit(menu.getLimit())
                         .collect(Collectors.toList());
             }
-            else if (by.equals("NCS")) {
+            else if (menu.getBy().toUpperCase().equals("NCS")) {
                 // return id of the max value of new cases smoothed
                 id = covidStatisticsDataList.stream()
                         .sorted(Comparator.comparing(CovidStatisticsData::getNew_cases_smoothed).reversed())
@@ -192,7 +264,7 @@ public class ProcessCSVFile {
                         .limit(menu.getLimit())
                         .collect(Collectors.toList());
             }
-            else if (by.equals("ND")) {
+            else if (menu.getBy().toUpperCase().equals("ND")) {
                 // return id of the max value of new deaths
                 id = covidStatisticsDataList.stream()
                         .sorted(Comparator.comparing(CovidStatisticsData::getNew_deaths).reversed())
@@ -201,7 +273,7 @@ public class ProcessCSVFile {
                         .limit(menu.getLimit())
                         .collect(Collectors.toList());
             }
-            else if (by.equals("NDS")) {
+            else if (menu.getBy().toUpperCase().equals("NDS")) {
                 // return id of the max value of new deaths smoothed
                 id = covidStatisticsDataList.stream()
                         .sorted(Comparator.comparing(CovidStatisticsData::getNew_deaths_smoothed).reversed())
@@ -210,7 +282,7 @@ public class ProcessCSVFile {
                         .limit(menu.getLimit())
                         .collect(Collectors.toList());
             }
-            else if (by.equals("NT")) {
+            else if (menu.getBy().toUpperCase().equals("NT")) {
                 // return id of the max value of new tests
                 id = covidStatisticsDataList.stream()
                         .sorted(Comparator.comparing(CovidStatisticsData::getNew_tests).reversed())
@@ -219,7 +291,7 @@ public class ProcessCSVFile {
                         .limit(menu.getLimit())
                         .collect(Collectors.toList());
             }
-            else if (by.equals("NDPC")) {
+            else if (menu.getBy().toUpperCase().equals("NDPC")) {
                 // return id of the max value of new deaths per case
                 id = covidStatisticsDataList.stream()
                         .sorted(Comparator.comparing(CovidStatisticsData::getNew_deaths_per_case).reversed())
@@ -229,24 +301,34 @@ public class ProcessCSVFile {
                         .collect(Collectors.toList());
             }
             else {
+                System.out.println("Invalid input");
                 id = null;
             }
 
-            if (typeOfRecords.equals("DATE")) {
+            if (menu.getDisplay().toUpperCase().equals("DATE:")) {
                 locationDataList.stream()
-                        .filter(locationData -> id.contains(locationData.getId()))
+                        .filter(locationData -> {
+                            assert id != null;
+                            return id.contains(locationData.getId());
+                        })
                         .map(LocationData::getDate)
                         .forEach(System.out::println);
             }
-            else if (typeOfRecords.equals("COUNTRY")) {
+            else if (menu.getDisplay().toUpperCase().equals("COUNTRY:")) {
                 locationDataList.stream()
-                        .filter(locationData -> id.contains(locationData.getId()))
+                        .filter(locationData -> {
+                            assert id != null;
+                            return id.contains(locationData.getId());
+                        })
                         .map(LocationData::getLocation)
                         .forEach(System.out::println);
             }
-            else if (typeOfRecords.equals("CONTINENT")) {
+            else if (menu.getDisplay().toUpperCase().equals("CONTINENT:")) {
                 locationDataList.stream()
-                        .filter(locationData -> id.contains(locationData.getId()))
+                        .filter(locationData -> {
+                            assert id != null;
+                            return id.contains(locationData.getId());
+                        })
                         .map(LocationData::getContinent)
                         .forEach(System.out::println);
             }
@@ -269,36 +351,6 @@ public class ProcessCSVFile {
         return s;
     }
 
-
-    private static Double ifNegative(@NotNull Double d) {
-        if(d < 0) {
-            return 999999999999999999.0;
-        }
-        return d;
-    }
-
-
-
-    public static @Nullable String getPathS() {
-
-        try (InputStream input = new FileInputStream("src/main/resources/persistence.properties")) {
-
-            Properties prop = new Properties();
-
-            // load a properties file
-            prop.load(input);
-
-            String sPath;
-            // get the property value and print it out
-           return prop.getProperty("sPath");
-
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-
-        return null;
-    }
-
     @org.jetbrains.annotations.Nullable
     public static String getPath() {
 
@@ -309,9 +361,9 @@ public class ProcessCSVFile {
             // load a properties file
             prop.load(input);
 
-            String path;
+
             // get the property value and print it out
-            return prop.getProperty("path");
+            return prop.getProperty("user.dir");
 
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -320,8 +372,6 @@ public class ProcessCSVFile {
         return null;
     }
 
-    private static AtomicLong idCounter = new AtomicLong();
-    private static AtomicLong idCounter1 = new AtomicLong();
 
     public static @NotNull String createID()
     {
@@ -330,23 +380,6 @@ public class ProcessCSVFile {
     public static @NotNull String createID1()
     {
         return String.valueOf(idCounter1.getAndIncrement());
-    }
-
-    private static void minAndMax(String path) {
-        try (Stream<String> stream = Files.lines(Paths.get(path))) {
-            DoubleSummaryStatistics statistics = stream
-                    .map(s -> s.split(",")[8])
-                    .skip(1)
-                    //remove null values
-                    .filter(s -> !s.equals(""))
-                    .mapToDouble(Double::parseDouble)
-                    //.mapToDouble(Integer::valueOf)
-                    .summaryStatistics();
-            System.out.println("Lowest:: " + statistics.getMin());
-            System.out.println("Highest:: " + statistics.getMax());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
 }

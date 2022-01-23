@@ -23,6 +23,14 @@ public class Menu {
         this.path = path;
     }
 
+    public Integer getLimit() {
+        return limit;
+    }
+
+    public void setLimit(Integer limit) {
+        this.limit = limit;
+    }
+
     @Override
     public String toString() {
         return "-file " + path + " -status " + status + " -limit " + limit + " -by " + by + " -display " + display;

@@ -1,0 +1,6 @@
+Min
+-file /src/main/resources/owid-covid-data.csv -stat min -limit 5 -by NC -display DATE:
+-file /src/main/resources/owid-covid-data.csv -stat min -limit 5 -by NCs -display COUNTRY:
+-file /src/main/resources/owid-covid-data.csv -stat min -limit 5 -by ndpc -display DATE:
+Max
+-file /src/main/resources/owid-covid-data.csv -stat max -limit 5 -by NC -display DATE:
