@@ -1,16 +1,16 @@
 # Statistical Processing: Covid Cases
 ## Using Java ☕ 
 
-<!--  
+###Source code contains:
+* Application
+* Implementation
+* Model
+* Resources
 
-resources
+##Application
+##Implementation
+##Model
+##Resources
 
-3 interfaces
-
-data -> model : data, getter, setter, hashcode, equals, toString;
-
-assignment class -> retrieved paths
-
--->
 
 

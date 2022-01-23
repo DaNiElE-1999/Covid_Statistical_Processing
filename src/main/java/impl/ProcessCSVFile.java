@@ -20,7 +20,7 @@ public class ProcessCSVFile {
     private static AtomicLong idCounter = new AtomicLong();
     private static AtomicLong idCounter1 = new AtomicLong();
 
-    public static <T> void go() throws Exception {
+    public static void go() throws Exception {
 
         System.out.println("Please enter the command line parameters\n");
         System.out.println("Path must be relative to the Assignment Folder\n");
@@ -124,36 +124,42 @@ public class ProcessCSVFile {
         }
 
         //populate list of LocationData and CovidStatisticsData
-        lines.stream()
-                .map(line -> line.split(",", -1))
-                .forEach(line -> {
-                    if (line.length!=67) {
-                       System.out.println("Error in line: " + line.length);
-                    }
-                            LocationData locationData = new LocationData(
-                                    Integer.parseInt(createID()), // id
-                                    line[3], //date
-                                    line[0], //iso_code
-                                    line[1], //continent
-                                    line[2], //country
-                                    Double.parseDouble(ifNull(line[48])), //stringency_index
-                                    Double.parseDouble(ifNull(line[50])), //population
-                                    Double.parseDouble(ifNull(line[47]))); //median_age
-                            locationDataList.add(locationData);
-                            CovidStatisticsData covidStatisticsData = new CovidStatisticsData(
-                                    Integer.parseInt(createID1()), // id
-                                    Double.parseDouble(ifNull(line[4])), //total_cases
-                                    Double.parseDouble(ifNull(line[5])), //new_cases
-                                    Double.parseDouble(ifNull(line[6])), //new_cases_smoothed
-                                    Double.parseDouble(ifNull(line[7])), //total_deaths
-                                    Double.parseDouble(ifNull(line[8])), //new_deaths
-                                    Double.parseDouble(ifNull(line[9])), //new_deaths_smoothed
-                                    Double.parseDouble(ifNull(line[16])), //reproduction_rate
-                                    Double.parseDouble(ifNull(line[25])), //new_tests
-                                    Double.parseDouble(ifNull(line[26]))); //total_tests
-                             covidStatisticsDataList.add(covidStatisticsData);
-                        }
-                );
+        try {
+            lines.stream()
+                    .map(line -> line.split(",", -1))
+                    .forEach(line -> {
+                                if (line.length!=67) {
+                                    System.out.println("Error in line: " + line.length);
+                                }
+                                LocationData locationData = new LocationData(
+                                        Integer.parseInt(createID()), // id
+                                        line[3], //date
+                                        line[0], //iso_code
+                                        line[1], //continent
+                                        line[2], //country
+                                        Double.parseDouble(ifNull(line[48])), //stringency_index
+                                        Double.parseDouble(ifNull(line[50])), //population
+                                        Double.parseDouble(ifNull(line[47]))); //median_age
+                                locationDataList.add(locationData);
+                                CovidStatisticsData covidStatisticsData = new CovidStatisticsData(
+                                        Integer.parseInt(createID1()), // id
+                                        Double.parseDouble(ifNull(line[4])), //total_cases
+                                        Double.parseDouble(ifNull(line[5])), //new_cases
+                                        Double.parseDouble(ifNull(line[6])), //new_cases_smoothed
+                                        Double.parseDouble(ifNull(line[7])), //total_deaths
+                                        Double.parseDouble(ifNull(line[8])), //new_deaths
+                                        Double.parseDouble(ifNull(line[9])), //new_deaths_smoothed
+                                        Double.parseDouble(ifNull(line[16])), //reproduction_rate
+                                        Double.parseDouble(ifNull(line[25])), //new_tests
+                                        Double.parseDouble(ifNull(line[26]))); //total_tests
+                                covidStatisticsDataList.add(covidStatisticsData);
+                            }
+                    );
+        }
+        catch (NullPointerException e) {
+            System.out.println("No values: " + e.getMessage());
+        }
+
 
         if (menu.getStatus().toLowerCase().equals("min")) {
             Collection<Integer> id;
